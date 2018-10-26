@@ -7,4 +7,6 @@
     <string name="api_key_enpoint_1" translatable="false">https://westcentralus.api.cognitive.microsoft.com/vision/v1.0</string>
     <string name="api_key_enpoint_2" translatable="false">https://westcentralus.api.cognitive.microsoft.com/vision/v2.0</string>
 
+    <string name="start">Try Now</string>
+
 </resources>
