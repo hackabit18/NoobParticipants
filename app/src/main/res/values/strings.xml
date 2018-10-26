@@ -4,9 +4,12 @@
 
     <string name="api_key_1" translatable="false">bacf901a488743418fa4ddd38c7d24a5</string>
     <string name="api_key_2" translatable="false">1e858f1bc22148838f39afe0bb08b775</string>
-    <string name="api_key_enpoint_1" translatable="false">https://westcentralus.api.cognitive.microsoft.com/vision/v1.0</string>
-    <string name="api_key_enpoint_2" translatable="false">https://westcentralus.api.cognitive.microsoft.com/vision/v2.0</string>
+    <string name="api_key_endpoint_1" translatable="false">https://westcentralus.api.cognitive.microsoft.com/vision/v1.0</string>
+    <string name="api_key_endpoint_2" translatable="false">https://westcentralus.api.cognitive.microsoft.com/vision/v2.0</string>
 
     <string name="start">Try Now</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

@@ -10,6 +10,7 @@
         android:id="@+id/startBtnAtHP"
         android:layout_width="@dimen/x256"
         android:layout_height="@dimen/x64"
-        android:text="@string/start" />
+        android:text="@string/start"
+        android:layout_centerInParent="true"/>
 
 </RelativeLayout>

@@ -42,7 +42,7 @@ dependencies {
 
     //Microsoft Vision API
     implementation 'com.microsoft.projectoxford:vision:1.0.394'
-    implementation files('libs/gson-2.3.1.jar')
+    //implementation files('libs/gson-2.3.1.jar')
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
