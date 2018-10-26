@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--    Font Size   -->
+    <dimen name="xs12">12sp</dimen>
+    <dimen name="xs16">16sp</dimen>
+    <dimen name="xs18">18sp</dimen>
+    <dimen name="xs22">22sp</dimen>
+    <dimen name="xs32">32sp</dimen>
+    <dimen name="xs64">64sp</dimen>
+
+    <!--    View Size   -->
+    <dimen name="x1">1dp</dimen>
+    <dimen name="x2">2dp</dimen>
+    <dimen name="x4">4dp</dimen>
+    <dimen name="x6">6dp</dimen>
+    <dimen name="x8">8dp</dimen>
+    <dimen name="x12">12dp</dimen>
+    <dimen name="x16">16dp</dimen>
+    <dimen name="x22">22dp</dimen>
+    <dimen name="x32">32dp</dimen>
+    <dimen name="x48">48dp</dimen>
+    <dimen name="x64">64dp</dimen>
+    <dimen name="x128">128dp</dimen>
+    <dimen name="x176">176dp</dimen>
+    <dimen name="x220">220dp</dimen>
+    <dimen name="x256">256dp</dimen>
+    <dimen name="x260">260dp</dimen>
+    <dimen name="x280">280dp</dimen>
+</resources>
