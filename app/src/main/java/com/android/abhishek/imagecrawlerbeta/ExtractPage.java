@@ -1,5 +1,6 @@
 package com.android.abhishek.imagecrawlerbeta;
 
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.database.Cursor;
@@ -14,6 +15,8 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -35,7 +38,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindString;
@@ -62,19 +64,19 @@ public class ExtractPage extends AppCompatActivity {
     private static final int REQUEST_SELECT_IMAGE = 0;
     private VisionServiceClient client;
 
-    private ArrayList<String> dataList; //sample image data word by word
-    private ArrayList<String> columnNameList = new ArrayList<>(); //column names
-    //private ArrayList<String> extractedData = new ArrayList<>();
-    private ArrayList<List<String>> splitedDataItemPlace = new ArrayList<>();//index gathered from first image
-
-    private ArrayList<String> concatDataItemPlace = new ArrayList<>();//every column's required index saved as a single string
-
+    private ArrayList<String> dataList;
+    private ArrayList<String> columnNameList = new ArrayList<>();
+    private ArrayList<String> concatDataItemPlace = new ArrayList<>();
     private ArrayList<Bitmap> bitmapsList = new ArrayList<>();
-    String imageEncoded;
-    List<String> imagesEncodedList;
+    private ArrayList<ArrayList<String>> dataExtracted = new ArrayList<>();
+    private List<String> imagesEncodedList;
+
+    private String imageEncoded;
     private  int count = 1;
 
     private String mySheetData = "";
+
+    private ProgressDialog mProgressDialog;
 
 
     @Override
@@ -93,25 +95,16 @@ public class ExtractPage extends AppCompatActivity {
         columnNameList = intent.getStringArrayListExtra(COLUMN_LIST_PASS_INTENT);
         concatDataItemPlace = intent.getStringArrayListExtra(COLUMN_LIST_POSITION_PASS_INTENT);
 
-        try{
-            for(int i = 0; i< concatDataItemPlace.size(); i++){
-                splitedDataItemPlace.add(Arrays.asList(concatDataItemPlace.get(i).split("\\s*,\\s*")));
-            }
-        }catch (Exception e){
-
-        }
-
         Log.d("DATA LIST",String.valueOf(dataList));
         Log.d("COLUMN LIST",String.valueOf(columnNameList));
         Log.d("DATA ITEM PLACE CONCAT",String.valueOf(concatDataItemPlace));
-        if(splitedDataItemPlace != null && splitedDataItemPlace.size() != 0){
-            Log.d("DATA ITEM PLACE SPLIT",String.valueOf(splitedDataItemPlace));
-        }
-
 
         if (client == null){
             client = new VisionServiceRestClient(apiKey, apiKeyEndPoint);
         }
+
+        addColumnTitle();
+        fillSheet(dataList);
     }
 
     @Override
@@ -167,6 +160,10 @@ public class ExtractPage extends AppCompatActivity {
             selectImage.setVisibility(View.VISIBLE);
         }
 
+        int resId = R.anim.recycler_animation;
+        LayoutAnimationController animation = AnimationUtils.loadLayoutAnimation(this, resId);
+        recyclerView.setLayoutAnimation(animation);
+
         ImageAdapter imageAdapter = new ImageAdapter(bitmapsList);
 
         recyclerView.setHasFixedSize(true);
@@ -187,6 +184,7 @@ public class ExtractPage extends AppCompatActivity {
 
     @OnClick(R.id.doneBtnAtEP)
     void done(){
+        showProgressDialog();
         for(int i=0;i<bitmapsList.size();i++){
             try{
                 new doRequest().execute(String.valueOf(bitmapsList.size()));
@@ -258,13 +256,17 @@ public class ExtractPage extends AppCompatActivity {
                     }
                     result += "\n\n";
                 }
-                fill(resultList);
+                dataExtracted.add(resultList);
                 Log.d("Result : ",result);
             }
 
             if(count == bitmapsList.size()){
                 Toast.makeText(ExtractPage.this,"Done",Toast.LENGTH_SHORT).show();
                 Log.e("My File : ",mySheetData);
+
+                for(int i=0;i<dataExtracted.size();i++){
+                    fillSheet(dataExtracted.get(i));
+                }
 
                 try {
                     File root = new File(Environment.getExternalStorageDirectory(), "HackABit");
@@ -277,6 +279,7 @@ public class ExtractPage extends AppCompatActivity {
                     writer.flush();
                     writer.close();
                     Toast.makeText(ExtractPage.this, "Saved", Toast.LENGTH_SHORT).show();
+                    hideProgressDialog();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -286,32 +289,58 @@ public class ExtractPage extends AppCompatActivity {
         }
     }
 
-    //function to call when text from images are read. the arraylist passed is the extracted data from images
-    private void fill(ArrayList<String> A ){
+    private void addColumnTitle(){
+        for(int i=0;i<columnNameList.size();i++){
+            mySheetData += columnNameList.get(i);
+            if(i == columnNameList.size()-1){
+                mySheetData += "\n";
+            }else{
+                mySheetData += ",";
+            }
+        }
+    }
+
+    private void fillSheet(ArrayList<String> A ){
         int columns = columnNameList.size() ;
         for(int i = 0 ; i< columns ; i++){
-            String toadd = "" ;
+            String stringToAdd = "" ;
             String str = concatDataItemPlace.get(i) ;
             int j = 0 ;
             int id = 0 ;
             while(j<str.length()){
                 if(str.charAt(j) == ','){
-                    toadd += A.get(id) + " ";
+                    stringToAdd += A.get(id) + " ";
                     j++ ; id = 0 ;
                     continue;
                 }
                 id = id*10+ str.charAt(j)-'0' ;
                 if(j == str.length()-1){
-                    toadd += A.get(id) + " ";
+                    stringToAdd += A.get(id) + " ";
                 }
                 j++;
             }
             if( i == columns-1){
-                mySheetData += toadd;
+                mySheetData += stringToAdd;
             }else{
-                mySheetData += toadd + ",";
+                mySheetData += stringToAdd + ",";
             }
         }
         mySheetData += "\n";
+    }
+
+    public void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage("loading");
+            mProgressDialog.setIndeterminate(true);
+        }
+
+        mProgressDialog.show();
+    }
+
+    public void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
     }
 }
