@@ -6,8 +6,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -31,8 +31,11 @@ import com.microsoft.projectoxford.vision.rest.VisionServiceException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindString;
@@ -59,15 +62,20 @@ public class ExtractPage extends AppCompatActivity {
     private static final int REQUEST_SELECT_IMAGE = 0;
     private VisionServiceClient client;
 
-    private ArrayList<String> dataList;
-    private ArrayList<String> columnNameList = new ArrayList<>();
-    private ArrayList<String> dataItemPlace = new ArrayList<>();
-    private ArrayList<ArrayList<String>> dataItem = new ArrayList<>();
+    private ArrayList<String> dataList; //sample image data word by word
+    private ArrayList<String> columnNameList = new ArrayList<>(); //column names
+    //private ArrayList<String> extractedData = new ArrayList<>();
+    private ArrayList<List<String>> splitedDataItemPlace = new ArrayList<>();//index gathered from first image
+
+    private ArrayList<String> concatDataItemPlace = new ArrayList<>();//every column's required index saved as a single string
 
     private ArrayList<Bitmap> bitmapsList = new ArrayList<>();
     String imageEncoded;
     List<String> imagesEncodedList;
     private  int count = 1;
+
+    private String mySheetData = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,18 +84,30 @@ public class ExtractPage extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-       /* Intent intent = getIntent();
+        Intent intent = getIntent();
         if(intent == null){
 
         }
 
         dataList = intent.getStringArrayListExtra(DATA_LIST_PASS_INTENT);
         columnNameList = intent.getStringArrayListExtra(COLUMN_LIST_PASS_INTENT);
-        dataItemPlace = intent.getStringArrayListExtra(COLUMN_LIST_POSITION_PASS_INTENT);
+        concatDataItemPlace = intent.getStringArrayListExtra(COLUMN_LIST_POSITION_PASS_INTENT);
+
+        try{
+            for(int i = 0; i< concatDataItemPlace.size(); i++){
+                splitedDataItemPlace.add(Arrays.asList(concatDataItemPlace.get(i).split("\\s*,\\s*")));
+            }
+        }catch (Exception e){
+
+        }
 
         Log.d("DATA LIST",String.valueOf(dataList));
         Log.d("COLUMN LIST",String.valueOf(columnNameList));
-        Log.d("DATA ITEM PLACE",String.valueOf(dataItemPlace));*/
+        Log.d("DATA ITEM PLACE CONCAT",String.valueOf(concatDataItemPlace));
+        if(splitedDataItemPlace != null && splitedDataItemPlace.size() != 0){
+            Log.d("DATA ITEM PLACE SPLIT",String.valueOf(splitedDataItemPlace));
+        }
+
 
         if (client == null){
             client = new VisionServiceRestClient(apiKey, apiKeyEndPoint);
@@ -227,27 +247,71 @@ public class ExtractPage extends AppCompatActivity {
                 OCR r = gson.fromJson(data, OCR.class);
 
                 String result = "";
+                ArrayList<String> resultList = new ArrayList<>();
                 for (Region reg : r.regions) {
                     for (Line line : reg.lines) {
                         for (Word word : line.words) {
                             result += word.text + " ";
-
-
-
-
+                            resultList.add(word.text);
                         }
                         result += "\n";
                     }
                     result += "\n\n";
                 }
+                fill(resultList);
                 Log.d("Result : ",result);
             }
 
             if(count == bitmapsList.size()){
                 Toast.makeText(ExtractPage.this,"Done",Toast.LENGTH_SHORT).show();
+                Log.e("My File : ",mySheetData);
+
+                try {
+                    File root = new File(Environment.getExternalStorageDirectory(), "HackABit");
+                    if (!root.exists()) {
+                        root.mkdirs();
+                    }
+                    File gpxfile = new File(root, "doc1.csv");
+                    FileWriter writer = new FileWriter(gpxfile);
+                    writer.append(mySheetData);
+                    writer.flush();
+                    writer.close();
+                    Toast.makeText(ExtractPage.this, "Saved", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }else{
                 count++;
             }
         }
+    }
+
+    //function to call when text from images are read. the arraylist passed is the extracted data from images
+    private void fill(ArrayList<String> A ){
+        int columns = columnNameList.size() ;
+        for(int i = 0 ; i< columns ; i++){
+            String toadd = "" ;
+            String str = concatDataItemPlace.get(i) ;
+            int j = 0 ;
+            int id = 0 ;
+            while(j<str.length()){
+                if(str.charAt(j) == ','){
+                    toadd += A.get(id) + " ";
+                    j++ ; id = 0 ;
+                    continue;
+                }
+                id = id*10+ str.charAt(j)-'0' ;
+                if(j == str.length()-1){
+                    toadd += A.get(id) + " ";
+                }
+                j++;
+            }
+            if( i == columns-1){
+                mySheetData += toadd;
+            }else{
+                mySheetData += toadd + ",";
+            }
+        }
+        mySheetData += "\n";
     }
 }
