@@ -14,15 +14,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".HomePage">
+
+        </activity>
+        <activity android:name=".ImageSelectPage" />
+        <activity android:name=".ExtractPage" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ImageSelectPage" />
-        <activity android:name=".ExtractPage" />
-        <activity android:name=".FormatSetupPage"></activity>
+        <activity android:name=".FormatSetupPage"/>
     </application>
 
 </manifest>

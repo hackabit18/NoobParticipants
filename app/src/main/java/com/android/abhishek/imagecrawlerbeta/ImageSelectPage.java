@@ -92,7 +92,7 @@ public class ImageSelectPage extends AppCompatActivity {
             String nFc = nFCEt.getText().toString();
             try{
                 int noOfColumn = Integer.parseInt(nFc);
-                //TODO start next activity with arraylist and int value
+
                 Intent intent = new Intent(ImageSelectPage.this,FormatSetupPage.class);
                 intent.putStringArrayListExtra(FormatSetupPage.DATA_LIST_PASS_INTENT,dataList);
                 intent.putExtra(FormatSetupPage.NO_OF_COLUMN_PASS_INTENT,String.valueOf(noOfColumn));
