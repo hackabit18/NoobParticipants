@@ -14,8 +14,10 @@ import android.view.ViewGroup;
 
 import com.android.abhishek.imagecrawlerbeta.R;
 import com.android.abhishek.imagecrawlerbeta.adapter.DataAdapter;
+import com.android.abhishek.imagecrawlerbeta.listener.RecyclerItemClickListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,6 +30,8 @@ public class DataFragment extends Fragment implements DataAdapter.onDataSelected
 
     private ArrayList<String> dataList;
     private ArrayList<Integer> selectedItem = new ArrayList<>();
+    private HashMap<Integer,Integer> hashMap;
+
 
     private Context context;
 
@@ -49,6 +53,10 @@ public class DataFragment extends Fragment implements DataAdapter.onDataSelected
 
     public DataFragment() {
 
+    }
+
+    public void setHashMap(HashMap<Integer, Integer> hashMap) {
+        this.hashMap = hashMap;
     }
 
     public void setContext(Context context) {
@@ -75,6 +83,17 @@ public class DataFragment extends Fragment implements DataAdapter.onDataSelected
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(context, 1));
         recyclerView.setAdapter(dataAdapter);
+
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(context, recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        selectedItem.add(hashMap.get(position));
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                        // do whatever
+                    }
+                })
+        );
     }
 
     @OnClick(R.id.nextBtnAtDF)
@@ -85,7 +104,7 @@ public class DataFragment extends Fragment implements DataAdapter.onDataSelected
 
     @Override
     public void onDataSelected(boolean bool,int position) {
-        if(bool){
+       /* if(bool){
             try{
                 if(!selectedItem.contains(new Integer(position))){
                     selectedItem.add(position);
@@ -100,6 +119,6 @@ public class DataFragment extends Fragment implements DataAdapter.onDataSelected
             }catch (Exception e){
                 Log.e("Error DF : ",e.getMessage());
             }
-        }
+        }*/
     }
 }

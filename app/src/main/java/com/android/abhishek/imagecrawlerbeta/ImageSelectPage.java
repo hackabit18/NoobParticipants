@@ -30,6 +30,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindString;
 import butterknife.BindView;
@@ -60,6 +63,10 @@ public class ImageSelectPage extends AppCompatActivity {
 
     private int pageNo = 1;
     private ArrayList<String> dataList = new ArrayList<>();
+    private ArrayList<String> boundaryBox = new ArrayList<>();
+
+    private HashMap<String,Integer> sampleMp = new HashMap<>();
+    private HashMap<Integer,Integer> sortedMp = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +106,8 @@ public class ImageSelectPage extends AppCompatActivity {
                 int noOfColumn = Integer.parseInt(nFc);
                 Intent intent = new Intent(ImageSelectPage.this,FormatSetupPage.class);
                 intent.putStringArrayListExtra(FormatSetupPage.DATA_LIST_PASS_INTENT,dataList);
+                intent.putStringArrayListExtra(FormatSetupPage.BOUNDARY_LIST_PASS_INTENT,boundaryBox);
+                intent.putExtra(FormatSetupPage.MAP_PASS_INTENT,sortedMp);
                 intent.putExtra(FormatSetupPage.NO_OF_COLUMN_PASS_INTENT,String.valueOf(noOfColumn));
                 startActivity(intent);
             }catch (Exception e){
@@ -168,6 +177,22 @@ public class ImageSelectPage extends AppCompatActivity {
                         for (Word word : line.words) {
                             result += word.text + " ";
                             dataList.add(word.text);
+                            String res = "";
+                            for(int i=0;i<word.boundingBox.length();i++){
+                                if(word.boundingBox.charAt(i) != ','){
+                                    res += word.boundingBox.charAt(i);
+                                }
+                            }
+
+                            if(word.boundingBox.length() == 3){
+                                res += "0";
+                            }else if(word.boundingBox.length() == 2){
+                                res += "00";
+                            }else if(word.boundingBox.length() == 1){
+                                res += "000";
+                            }
+
+                            boundaryBox.add(res);
                         }
                         result += "\n";
                     }
@@ -178,6 +203,7 @@ public class ImageSelectPage extends AppCompatActivity {
                 pageNo++;
                 relativeLayout.setVisibility(View.VISIBLE);
                 previewIv.setVisibility(View.GONE);
+                sortData();
             }
             Toast.makeText(ImageSelectPage.this,"Done",Toast.LENGTH_SHORT).show();
             hideProgressDialog();
@@ -197,6 +223,17 @@ public class ImageSelectPage extends AppCompatActivity {
     public void hideProgressDialog() {
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
+        }
+    }
+
+    public void sortData(){
+        for(int i=0;i<dataList.size();i++){
+            sampleMp.put(boundaryBox.get(i),i);
+        }
+        Collections.sort(boundaryBox.subList(1, boundaryBox.size()));
+
+        for(int i=0;i<dataList.size();i++){
+            sortedMp.put(i,sampleMp.get(boundaryBox.get(i)));
         }
     }
 }
