@@ -7,9 +7,12 @@ Library & Api Used:  Microsoft vision api
 
 ## Setup : 
 Step 1. -> Clone the apps to your system and open with Android Studio (or Similar IDE)
+
 Step 2. -> Go to  https://azure.microsoft.com/en-in/services/cognitive-services/computer-vision/  to obtain the Microsoft vision  api key along with root url
+
 Step 3. -> open strings.xml file and place your Api key and root url 
 			app -> src -> main -> res -> values -> strings.xml
+			
 Step 4. -> Run the app 
 
 ### Application Description:-
