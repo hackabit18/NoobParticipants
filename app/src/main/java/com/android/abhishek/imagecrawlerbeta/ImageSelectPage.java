@@ -27,6 +27,7 @@ import com.microsoft.projectoxford.vision.rest.VisionServiceException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import butterknife.BindString;
 import butterknife.BindView;
@@ -53,6 +54,7 @@ public class ImageSelectPage extends AppCompatActivity {
     private VisionServiceClient client;
 
     private int pageNo = 1;
+    private ArrayList<String> dataList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +93,10 @@ public class ImageSelectPage extends AppCompatActivity {
             try{
                 int noOfColumn = Integer.parseInt(nFc);
                 //TODO start next activity with arraylist and int value
+                Intent intent = new Intent(ImageSelectPage.this,FormatSetupPage.class);
+                intent.putStringArrayListExtra(FormatSetupPage.DATA_LIST_PASS_INTENT,dataList);
+                intent.putExtra(FormatSetupPage.NO_OF_COLUMN_PASS_INTENT,String.valueOf(noOfColumn));
+                startActivity(intent);
             }catch (Exception e){
                 Toast.makeText(ImageSelectPage.this,"Please select an integer value",Toast.LENGTH_SHORT).show();
             }
@@ -117,8 +123,7 @@ public class ImageSelectPage extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(output.toByteArray());
 
-        OCR ocr;
-        ocr = this.client.recognizeText(inputStream, LanguageCodes.English, true);
+        OCR ocr = this.client.recognizeText(inputStream, LanguageCodes.English, true);
 
         String result = gson.toJson(ocr);
 
@@ -162,6 +167,7 @@ public class ImageSelectPage extends AppCompatActivity {
                     for (Line line : reg.lines) {
                         for (Word word : line.words) {
                             result += word.text + " ";
+                            dataList.add(word.text);
                         }
                         result += "\n";
                     }
