@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ImageSelectPage">
+
+    <ImageView
+        android:id="@+id/imagePreviewIvAtISP"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x256"
+        android:scaleType="fitXY"
+        android:src="@mipmap/ic_launcher"/>
+
+    <Button
+        android:id="@+id/imageSelectDoneAtISP"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x64"
+        android:layout_alignParentBottom="true"
+        android:text="Next"/>
+
+    <EditText
+        android:id="@+id/nFCAEttISP"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x64"
+        android:hint="No Of Column you want"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
+</RelativeLayout>
