@@ -1,5 +1,6 @@
 package com.android.abhishek.imagecrawlerbeta;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.android.abhishek.imagecrawlerbeta.helper.ImageHelper;
@@ -28,6 +30,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindString;
 import butterknife.BindView;
@@ -37,6 +42,7 @@ import butterknife.OnClick;
 public class ImageSelectPage extends AppCompatActivity {
 
     private static final int REQUEST_SELECT_IMAGE = 0;
+    private ProgressDialog mProgressDialog;
 
     @BindString(R.string.api_key_endpoint_1)
     String apiKeyEndPoint;
@@ -47,6 +53,8 @@ public class ImageSelectPage extends AppCompatActivity {
     ImageView previewIv;
     @BindView(R.id.nFCAEttISP)
     EditText nFCEt;
+    @BindView(R.id.noOfColumnRlAtISP)
+    RelativeLayout relativeLayout;
 
     private Uri imageUri;
     private Bitmap bitmap;
@@ -55,6 +63,10 @@ public class ImageSelectPage extends AppCompatActivity {
 
     private int pageNo = 1;
     private ArrayList<String> dataList = new ArrayList<>();
+    private ArrayList<String> boundaryBox = new ArrayList<>();
+
+    private HashMap<String,Integer> sampleMp = new HashMap<>();
+    private HashMap<Integer,Integer> sortedMp = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,18 +95,19 @@ public class ImageSelectPage extends AppCompatActivity {
                     new doRequest().execute();
                 }catch (Exception e){
                     Toast.makeText(ImageSelectPage.this,"fail",Toast.LENGTH_SHORT).show();
-                    Log.e("Error oAR",e.getMessage());
                 }
             }else{
                 Toast.makeText(ImageSelectPage.this,"Please select an image",Toast.LENGTH_SHORT).show();
             }
+            showProgressDialog();
         }else{
             String nFc = nFCEt.getText().toString();
             try{
                 int noOfColumn = Integer.parseInt(nFc);
-
                 Intent intent = new Intent(ImageSelectPage.this,FormatSetupPage.class);
                 intent.putStringArrayListExtra(FormatSetupPage.DATA_LIST_PASS_INTENT,dataList);
+                intent.putStringArrayListExtra(FormatSetupPage.BOUNDARY_LIST_PASS_INTENT,boundaryBox);
+                intent.putExtra(FormatSetupPage.MAP_PASS_INTENT,sortedMp);
                 intent.putExtra(FormatSetupPage.NO_OF_COLUMN_PASS_INTENT,String.valueOf(noOfColumn));
                 startActivity(intent);
             }catch (Exception e){
@@ -143,8 +156,6 @@ public class ImageSelectPage extends AppCompatActivity {
                 return process();
             } catch (Exception e) {
                 this.e = e;
-                Toast.makeText(ImageSelectPage.this,"fail",Toast.LENGTH_SHORT).show();
-                Log.e("Error dIB",e.getMessage());
             }
             return null;
         }
@@ -155,19 +166,33 @@ public class ImageSelectPage extends AppCompatActivity {
 
             if (e != null) {
                 Toast.makeText(ImageSelectPage.this,"fail",Toast.LENGTH_SHORT).show();
-                Log.e("Error oPE",e.getMessage());
                 this.e = null;
             } else {
                 Gson gson = new Gson();
                 OCR r = gson.fromJson(data, OCR.class);
 
-                //  TODO store result in arraylist
                 String result = "";
                 for (Region reg : r.regions) {
                     for (Line line : reg.lines) {
                         for (Word word : line.words) {
                             result += word.text + " ";
                             dataList.add(word.text);
+                            String res = "";
+                            for(int i=0;i<word.boundingBox.length();i++){
+                                if(word.boundingBox.charAt(i) != ','){
+                                    res += word.boundingBox.charAt(i);
+                                }
+                            }
+
+                            if(word.boundingBox.length() == 3){
+                                res += "0";
+                            }else if(word.boundingBox.length() == 2){
+                                res += "00";
+                            }else if(word.boundingBox.length() == 1){
+                                res += "000";
+                            }
+
+                            boundaryBox.add(res);
                         }
                         result += "\n";
                     }
@@ -176,9 +201,39 @@ public class ImageSelectPage extends AppCompatActivity {
                 Log.d("Result : ",result);
 
                 pageNo++;
-                nFCEt.setVisibility(View.VISIBLE);
+                relativeLayout.setVisibility(View.VISIBLE);
+                previewIv.setVisibility(View.GONE);
+                sortData();
             }
             Toast.makeText(ImageSelectPage.this,"Done",Toast.LENGTH_SHORT).show();
+            hideProgressDialog();
+        }
+    }
+
+    public void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage("loading");
+            mProgressDialog.setIndeterminate(true);
+        }
+
+        mProgressDialog.show();
+    }
+
+    public void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
+    }
+
+    public void sortData(){
+        for(int i=0;i<dataList.size();i++){
+            sampleMp.put(boundaryBox.get(i),i);
+        }
+        Collections.sort(boundaryBox.subList(1, boundaryBox.size()));
+
+        for(int i=0;i<dataList.size();i++){
+            sortedMp.put(i,sampleMp.get(boundaryBox.get(i)));
         }
     }
 }
